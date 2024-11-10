@@ -28,7 +28,40 @@ enum {
 };
 uint16_t registers[R_COUNT];
 
+// An instruction is a command that tells the CPU to perform a certain fundamental operation 
+// Each instruction takes in an opcode and a set of parameters
+// The set of instructions forms what is called an instruction set. 
+
+enum {
+    OP_BR = 0, /* branch */
+    OP_ADD,    /* add  */
+    OP_LD,     /* load */
+    OP_ST,     /* store */
+    OP_JSR,    /* jump register */
+    OP_AND,    /* bitwise and */
+    OP_LDR,    /* load register */
+    OP_STR,    /* store register */
+    OP_RTI,    /* unused */
+    OP_NOT,    /* bitwise not */
+    OP_LDI,    /* load indirect */
+    OP_STI,    /* store indirect */
+    OP_JMP,    /* jump */
+    OP_RES,    /* reserved (unused) */
+    OP_LEA,    /* load effective address */
+    OP_TRAP    /* execute trap */
+};
+
+// Condition flags store some information in the 
+// R_COND register to check logical conditions on the last performed 
+// operation 
+
+enum {
+    FL_POS = 1 << 0,
+    FL_ZRO = 1 << 1,
+    FL_NEG = 1 << 2
+};
+
+
 int main() {
-    printf("%d", R_R0);
     return 0;
 }
