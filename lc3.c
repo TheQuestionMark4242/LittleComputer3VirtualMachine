@@ -62,6 +62,67 @@ enum {
 };
 
 
-int main() {
+int main(int argc, const char* argv[]) {
+    // If the number of arguments provided is not sufficient,
+    // we print a user guide on how to use it
+    if(argc < 2) {
+        printf("lc3 [image-file] ...\n");
+        exit(2);
+    }
+
+    for(int i = 1; i < argc; i++) if(!read_image(argv[i])){
+        printf("Failed to load image: %s\n", argv[i]);
+        exit(1);
+    }
+
+    // Initialize the conditon flag to 0
+    registers[R_COND] = FL_ZRO;
+
+    // Set the program counter to its starting position 
+    // The default is 0x3000 for some reason 
+    enum { PC_START = 0x3000};
+    registers[R_PC] = PC_START;
+
+    int running = 1;
+    while(running) {
+        uint16_t instruction = memory_read(registers[R_PC]++);
+        uint16_t op = instruction >> 12;
+
+        switch(op) {
+            case OP_BR:
+                break;
+            case OP_ADD:
+                break;
+            case OP_LD:
+                break;
+            case OP_ST:
+                break;
+            case OP_JSR:
+                break;
+            case OP_AND:
+                break;
+            case OP_LDR:
+                break;
+            case OP_STR:
+                break;
+            case OP_LDI:
+                break;
+            case OP_STI:
+                break;
+            case OP_JMP:
+                break;
+            case OP_LEA:
+                break;
+            case OP_TRAP:
+                break;
+            case OP_NOT:
+                break;
+            case OP_RES:
+            case OP_RTI:
+                break;
+            default:
+                break;
+        }
+    }
     return 0;
 }
