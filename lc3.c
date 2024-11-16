@@ -61,6 +61,36 @@ enum {
     FL_NEG = 1 << 2
 };
 
+uint16_t sign_extend(uint16_t x, int bit_count) {
+    if(x >> (bit_count - 1) & 1) {
+        x |= (0xFFFF << bit_count);
+    }
+    return x;
+}
+
+void update_flags(uint16_t r) {
+    if(registers[r] == 0) {
+        registers[R_COND] = FL_ZRO;
+    }
+    else return (registers[r] >> 15 ? FL_NEG : FL_POS);
+}
+
+void op_add(uint16_t instruction) {
+    uint16_t destination_register = (instruction >> 9) & 0x7;
+    uint16_t source_register1 = (instruction >> 6) & 0x7;
+    uint16_t immediate_flag = (instruction >> 5) & 0x1;
+
+    if(immediate_flag) {
+        // In immediate mode
+        uint16_t imm = sign_extend(instruction & 0x1F, 5);
+        destination_register = source_register1 + imm;
+    }
+    else {
+        uint16_t source_register2 = instruction & 0x7;
+        destination_register = source_register1 + source_register2;
+    }
+    update_flags(destination_register);
+}
 
 int main(int argc, const char* argv[]) {
     // If the number of arguments provided is not sufficient,
@@ -92,6 +122,7 @@ int main(int argc, const char* argv[]) {
             case OP_BR:
                 break;
             case OP_ADD:
+                op_add(instruction);
                 break;
             case OP_LD:
                 break;
