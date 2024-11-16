@@ -92,9 +92,13 @@ void op_add(uint16_t instruction) {
     update_flags(destination_register);
 }
 
+void op_load(uint16_t instruction) {
+    uint16_t destination_register = (instruction >> 9) & 0x7;
+    uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
+    registers[destination_register] = memory_read(registers[R_PC] + pc_offset); 
+}
 
-
-void load_indirect(uint16_t instruction) {
+void op_load_indirect(uint16_t instruction) {
     uint16_t destination_register = (instruction >> 9) & 0x7;
     uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
     registers[destination_register] = memory_read(memory_read(registers[R_PC] + pc_offset));
@@ -133,6 +137,7 @@ int main(int argc, const char* argv[]) {
                 op_add(instruction);
                 break;
             case OP_LD:
+                op_load(instruction);
                 break;
             case OP_ST:
                 break;
@@ -145,6 +150,7 @@ int main(int argc, const char* argv[]) {
             case OP_STR:
                 break;
             case OP_LDI:
+                op_load_indirect(instruction);
                 break;
             case OP_STI:
                 break;
