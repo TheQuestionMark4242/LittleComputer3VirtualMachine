@@ -149,6 +149,19 @@ void op_jump_to_subroutine(uint16_t instruction) {
     }
 }
 
+
+void op_store(uint16_t instruction) {
+    uint16_t source_register = instruction >> 9 & 0x7;
+    uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
+    memory_write(registers[R_PC] + pc_offset, registers[source_register]);
+}
+
+void op_store_indirect(uint16_t instruction) {
+    uint16_t source_register = instruction >> 9 & 0x7;
+    uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
+    memory_write(memory_read(registers[R_PC] + pc_offset, registers[source_register]));
+}
+
 int main(int argc, const char* argv[]) {
     // If the number of arguments provided is not sufficient,
     // we print a user guide on how to use it
@@ -186,7 +199,7 @@ int main(int argc, const char* argv[]) {
                 op_load(instruction);
                 break;
             case OP_ST:
-            
+                op_store(instruction);
                 break;
             case OP_JSR:
                 op_jump_to_subroutine(instruction);
@@ -202,6 +215,7 @@ int main(int argc, const char* argv[]) {
                 op_load_indirect(instruction);
                 break;
             case OP_STI:
+                op_store_indirect(instruction);
                 break;
             case OP_JMP:
                 op_jump(instruction);
