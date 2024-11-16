@@ -83,13 +83,21 @@ void op_add(uint16_t instruction) {
     if(immediate_flag) {
         // In immediate mode
         uint16_t imm = sign_extend(instruction & 0x1F, 5);
-        destination_register = source_register1 + imm;
+        registers[destination_register] = registers[source_register1] + imm;
     }
     else {
         uint16_t source_register2 = instruction & 0x7;
-        destination_register = source_register1 + source_register2;
+        registers[destination_register] = registers[source_register1] + source_register2;
     }
     update_flags(destination_register);
+}
+
+
+
+void load_indirect(uint16_t instruction) {
+    uint16_t destination_register = (instruction >> 9) & 0x7;
+    uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
+    registers[destination_register] = memory_read(memory_read(registers[R_PC] + pc_offset));
 }
 
 int main(int argc, const char* argv[]) {
