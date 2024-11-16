@@ -113,11 +113,11 @@ void op_and(uint16_t instruction) {
 
     if(immediate_flag) {
         uint16_t immediate = sign_extend(instruction & 0x1F, 5); 
-        registers[destination_register] = registers[source_register1] + immediate;
+        registers[destination_register] = registers[source_register1] & immediate;
     }
     else {
         uint16_t source_register2 = instruction & 0x7;
-        registers[destination_register] = registers[source_register1] + registers[source_register2];
+        registers[destination_register] = registers[source_register1] & registers[source_register2];
     }
     update_flags(destination_register);
 }
@@ -130,6 +130,12 @@ void op_conditional_branch(uint16_t instruction) {
     if((n && registers[R_COND] == FL_NEG) || (z && registers[R_COND] == FL_ZRO) || (p && registers[R_COND] == FL_POS)) {
         registers[R_PC] = registers[R_PC] + pc_offset;
     }
+}
+
+void op_jump(uint16_t instruction) {
+    //Should also handle the RET instruction when the base_register is R_7.
+    uint16_t base_register = (instruction >> 6) & 0x7;
+    registers[R_PC] = registers[base_register];
 }
 
 int main(int argc, const char* argv[]) {
@@ -186,6 +192,7 @@ int main(int argc, const char* argv[]) {
             case OP_STI:
                 break;
             case OP_JMP:
+                op_jump(instruction);
                 break;
             case OP_LEA:
                 break;
