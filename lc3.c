@@ -82,8 +82,8 @@ void op_add(uint16_t instruction) {
 
     if(immediate_flag) {
         // In immediate mode
-        uint16_t imm = sign_extend(instruction & 0x1F, 5);
-        registers[destination_register] = registers[source_register1] + imm;
+        uint16_t immediate = sign_extend(instruction & 0x1F, 5);
+        registers[destination_register] = registers[source_register1] + immediate;
     }
     else {
         uint16_t source_register2 = instruction & 0x7;
@@ -96,12 +96,40 @@ void op_load(uint16_t instruction) {
     uint16_t destination_register = (instruction >> 9) & 0x7;
     uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
     registers[destination_register] = memory_read(registers[R_PC] + pc_offset); 
+    update_flags(destination_register);
 }
 
 void op_load_indirect(uint16_t instruction) {
     uint16_t destination_register = (instruction >> 9) & 0x7;
     uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
     registers[destination_register] = memory_read(memory_read(registers[R_PC] + pc_offset));
+    update_flags(destination_register);
+}
+
+void op_and(uint16_t instruction) {
+    uint16_t destination_register = (instruction >> 9) & 0x7;
+    uint16_t source_register1 = (instruction >> 6) & 0x7;
+    uint16_t immediate_flag = (instruction >> 5) & 0x1;
+
+    if(immediate_flag) {
+        uint16_t immediate = sign_extend(instruction & 0x1F, 5); 
+        registers[destination_register] = registers[source_register1] + immediate;
+    }
+    else {
+        uint16_t source_register2 = instruction & 0x7;
+        registers[destination_register] = registers[source_register1] + registers[source_register2];
+    }
+    update_flags(destination_register);
+}
+
+void op_conditional_branch(uint16_t instruction) {
+    uint16_t n = (instruction >> 11) & 0x1;
+    uint16_t z = (instruction >> 10) & 0x1;
+    uint16_t p = (instruction >> 9) & 0x1;
+    uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
+    if((n && registers[R_COND] == FL_NEG) || (z && registers[R_COND] == FL_ZRO) || (p && registers[R_COND] == FL_POS)) {
+        registers[R_PC] = registers[R_PC] + pc_offset;
+    }
 }
 
 int main(int argc, const char* argv[]) {
@@ -132,6 +160,7 @@ int main(int argc, const char* argv[]) {
 
         switch(op) {
             case OP_BR:
+                op_conditional_branch(instruction);
                 break;
             case OP_ADD:
                 op_add(instruction);
@@ -140,10 +169,12 @@ int main(int argc, const char* argv[]) {
                 op_load(instruction);
                 break;
             case OP_ST:
+            
                 break;
             case OP_JSR:
                 break;
             case OP_AND:
+                op_and(instruction);
                 break;
             case OP_LDR:
                 break;
