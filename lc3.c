@@ -110,7 +110,6 @@ void op_and(uint16_t instruction) {
     uint16_t destination_register = (instruction >> 9) & 0x7;
     uint16_t source_register1 = (instruction >> 6) & 0x7;
     uint16_t immediate_flag = (instruction >> 5) & 0x1;
-
     if(immediate_flag) {
         uint16_t immediate = sign_extend(instruction & 0x1F, 5); 
         registers[destination_register] = registers[source_register1] & immediate;
@@ -136,6 +135,18 @@ void op_jump(uint16_t instruction) {
     //Should also handle the RET instruction when the base_register is R_7.
     uint16_t base_register = (instruction >> 6) & 0x7;
     registers[R_PC] = registers[base_register];
+}
+
+void op_jump_to_subroutine(uint16_t instruction) {
+    registers[R_R7] = registers[R_PC];
+    if(instruction >> 11 & 0x1) {
+        uint16_t base_register = (instruction >> 6) & 0x7;
+        registers[R_PC] = registers[base_register];
+    }
+    else {
+        uint16_t pc_offset = sign_extend(instruction & 0x7FF);
+        registers[R_PC] += pc_offset;
+    }
 }
 
 int main(int argc, const char* argv[]) {
@@ -178,6 +189,7 @@ int main(int argc, const char* argv[]) {
             
                 break;
             case OP_JSR:
+                op_jump_to_subroutine(instruction);
                 break;
             case OP_AND:
                 op_and(instruction);
