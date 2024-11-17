@@ -359,8 +359,6 @@ void op_not(uint16_t instruction) {
 }
 
 int main(int argc, const char* argv[]) {
-    signal(SIGINT, handle_interrupt);
-    disable_input_buffering();
 
     // If the number of arguments provided is not sufficient,
     // we print a user guide on how to use it
@@ -374,6 +372,9 @@ int main(int argc, const char* argv[]) {
         exit(1);
     }
 
+    signal(SIGINT, handle_interrupt);
+    disable_input_buffering();
+    
     // Initialize the conditon flag to 0
     registers[R_COND] = FL_ZRO;
 
