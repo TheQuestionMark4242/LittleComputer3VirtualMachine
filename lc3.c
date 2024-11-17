@@ -184,6 +184,12 @@ void op_store_base_plus_offset(uint16_t instruction) {
     memory_write(registers[base_register] + offset, registers[source_register]);
 }
 
+void op_system_call(uint16_t instruction) {
+    uint16_t trap_vector = instruction & 0xFF; //Implicitly zero extended here 
+    registers[R_R7] = registers[R_PC];
+    registers[R_PC] = memory_read(trap_vector);
+}
+
 int main(int argc, const char* argv[]) {
     // If the number of arguments provided is not sufficient,
     // we print a user guide on how to use it
@@ -248,6 +254,7 @@ int main(int argc, const char* argv[]) {
                 op_load_effective_address(instruction);
                 break;
             case OP_TRAP:
+                op_system_call(instruction);
                 break;
             case OP_NOT:
                 break;
