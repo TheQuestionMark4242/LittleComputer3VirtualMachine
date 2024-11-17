@@ -1,5 +1,10 @@
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <signal.h>
+/* windows only */
+#include <Windows.h>
+#include <conio.h>  // _kbhit
+
 //Constructing the memory of the computer 
 // The LC3 computer has 2^16 = 65,536 memory locations each 
 // storing a 16-bit value 
@@ -55,6 +60,28 @@ uint16_t memory_read(uint16_t address) {
         memory[MR_KBSR] = 0;
     }
     return memory[address];
+}
+
+HANDLE hStdin = INVALID_HANDLE_VALUE;
+DWORD fdwMode, fdwOldMode;
+
+void disable_input_buffering(){
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(hStdin, &fdwOldMode); /* save old mode */
+    fdwMode = fdwOldMode
+            ^ ENABLE_ECHO_INPUT  /* no input echo */
+            ^ ENABLE_LINE_INPUT; /* return when one or
+                                    more characters are available */
+    SetConsoleMode(hStdin, fdwMode); /* set new mode */
+    FlushConsoleInputBuffer(hStdin); /* clear buffer */
+}
+
+void restore_input_buffering(){
+    SetConsoleMode(hStdin, fdwOldMode);
+}
+
+uint16_t check_key(){
+    return WaitForSingleObject(hStdin, 1000) == WAIT_OBJECT_0 && _kbhit();
 }
 
 // An instruction is a command that tells the CPU to perform a certain fundamental operation 
