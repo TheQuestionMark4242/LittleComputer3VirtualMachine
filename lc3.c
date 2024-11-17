@@ -28,6 +28,35 @@ enum {
 };
 uint16_t registers[R_COUNT];
 
+enum {
+    
+    // Special registers not accesible from the normal 
+    // register table, instead stored at a specific location in 
+    // memory, commonly used to interact with special hardware 
+    // devices. 
+    
+    MR_KBSR = 0xFE00,  // Keyboard Status
+    MR_KBDR = 0xFE02   // Keyboard Data 
+};
+
+void memory_write(uint16_t address, uint16_t value) {
+    memory[address] = value;
+}
+
+uint16_t memory_read(uint16_t address) {
+    if(address != MR_KBSR) {
+        return memory[address];
+    }
+    if(check_key()) {
+        memory[MR_KBSR] = (1 << 15);
+        memory[MR_KBDR] = getchar();
+    }
+    else {
+        memory[MR_KBSR] = 0;
+    }
+    return memory[address];
+}
+
 // An instruction is a command that tells the CPU to perform a certain fundamental operation 
 // Each instruction takes in an opcode and a set of parameters
 // The set of instructions forms what is called an instruction set. 
@@ -282,7 +311,6 @@ int read_image(const char* image_path) {
     read_image_file(file);
     fclose(file);
     return 1;
-
 }
 
 int main(int argc, const char* argv[]) {
