@@ -170,6 +170,13 @@ void op_load_base_plus_offset(uint16_t instruction) {
     update_flags(destination_register);
 }
 
+void op_load_effective_address(uint16_t instruction) {
+    uint16_t destination_register = (instruction >> 9) & 0x7;
+    uint16_t pc_offset = sign_extend(instruction & 0x1FF, 9);
+    registers[destination_register] = registers[R_PC] + pc_offset;
+    update_flags(destination_register);
+}
+
 int main(int argc, const char* argv[]) {
     // If the number of arguments provided is not sufficient,
     // we print a user guide on how to use it
@@ -230,6 +237,7 @@ int main(int argc, const char* argv[]) {
                 op_jump(instruction);
                 break;
             case OP_LEA:
+                op_load_effective_address(instruction);
                 break;
             case OP_TRAP:
                 break;
