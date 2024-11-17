@@ -122,6 +122,10 @@ void op_and(uint16_t instruction) {
 }
 
 void op_conditional_branch(uint16_t instruction) {
+    // Justin Meiners presents a more convenient way
+    // Instead of checking these separately
+    // one can just check if the 3 bits togetger anded with the 
+    // condition flag is non-zero.
     uint16_t n = (instruction >> 11) & 0x1;
     uint16_t z = (instruction >> 10) & 0x1;
     uint16_t p = (instruction >> 9) & 0x1;
