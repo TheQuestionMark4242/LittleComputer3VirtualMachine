@@ -177,6 +177,13 @@ void op_load_effective_address(uint16_t instruction) {
     update_flags(destination_register);
 }
 
+void op_store_base_plus_offset(uint16_t instruction) {
+    uint16_t source_register = (instruction >> 9) & 0x7;
+    uint16_t base_register = (instruction >> 6) & 0x7;
+    uint16_t offset = sign_extend(instruction & 0x3F, 6);
+    memory_write(registers[base_register] + offset, registers[source_register]);
+}
+
 int main(int argc, const char* argv[]) {
     // If the number of arguments provided is not sufficient,
     // we print a user guide on how to use it
@@ -226,6 +233,7 @@ int main(int argc, const char* argv[]) {
                 op_load_base_plus_offset(instruction);
                 break;
             case OP_STR:
+                op_store_base_plus_offset(instruction);
                 break;
             case OP_LDI:
                 op_load_indirect(instruction);
