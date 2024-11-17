@@ -190,6 +190,13 @@ void op_system_call(uint16_t instruction) {
     registers[R_PC] = memory_read(trap_vector);
 }
 
+void op_not(uint16_t instruction) {
+    uint16_t destination_register = (instruction >> 9) & 0x7;
+    uint16_t source_register = (instruction >> 6) & 0x7;
+    registers[destination_register] = ~registers[source_register];
+    update_flags(destination_register);
+}
+
 int main(int argc, const char* argv[]) {
     // If the number of arguments provided is not sufficient,
     // we print a user guide on how to use it
@@ -257,6 +264,7 @@ int main(int argc, const char* argv[]) {
                 op_system_call(instruction);
                 break;
             case OP_NOT:
+                op_not(instruction);
                 break;
             case OP_RES:
             case OP_RTI:
