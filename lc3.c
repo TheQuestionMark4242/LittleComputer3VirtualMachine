@@ -201,7 +201,7 @@ void op_add(uint16_t instruction) {
     }
     else {
         uint16_t source_register2 = instruction & 0x7;
-        registers[destination_register] = registers[source_register1] + source_register2;
+        registers[destination_register] = registers[source_register1] + registers[source_register2];
     }
     update_flags(destination_register);
 }
