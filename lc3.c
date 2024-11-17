@@ -144,12 +144,12 @@ void op_jump(uint16_t instruction) {
 void op_jump_to_subroutine(uint16_t instruction) {
     registers[R_R7] = registers[R_PC];
     if(instruction >> 11 & 0x1) {
-        uint16_t base_register = (instruction >> 6) & 0x7;
-        registers[R_PC] = registers[base_register];
+        uint16_t pc_offset = sign_extend(instruction & 0x7FF, 11);
+        registers[R_PC] += pc_offset;
     }
     else {
-        uint16_t pc_offset = sign_extend(instruction & 0x7FF);
-        registers[R_PC] += pc_offset;
+        uint16_t base_register = (instruction >> 6) & 0x7;
+        registers[R_PC] = registers[base_register];
     }
 }
 
@@ -170,7 +170,7 @@ void op_load_base_plus_offset(uint16_t instruction) {
     uint16_t destination_register = (instruction >> 9) & 0x7;
     uint16_t base_register = (instruction >> 6) & 0x7; 
     uint16_t offset = sign_extend(instruction & 0x3F, 6);
-    registers[destination_register] = memory_read(base_register + offset);
+    registers[destination_register] = memory_read(registers[base_register] + offset);
     update_flags(destination_register);
 }
 
@@ -188,10 +188,59 @@ void op_store_base_plus_offset(uint16_t instruction) {
     memory_write(registers[base_register] + offset, registers[source_register]);
 }
 
+enum {
+    TRAP_GETC = 0x20,  // Get a character from the keyboard, not echoed to the terminal 
+    TRAP_OUT = 0x21,   // Output a character 
+    TRAP_PUTS = 0x22,  // Output a word string 
+    TRAP_IN = 0x23,    // Get a character from the keyboard, echoed to the terminal 
+    TRAP_PUTSP = 0x24, // Output a byte string
+    TRAP_HALT = 0x25   // Halt the program 
+};
+
 void op_system_call(uint16_t instruction) {
     uint16_t trap_vector = instruction & 0xFF; //Implicitly zero extended here 
     registers[R_R7] = registers[R_PC];
-    registers[R_PC] = memory_read(trap_vector);
+    // Execute system calls, mostly for dealing with I/O
+    switch (instruction & 0xFF) {
+        case TRAP_GETC:
+            registers[R_R0] = (uint16_t) getchar();
+            update_flags(R_R0);
+            break;
+        case TRAP_OUT:
+            putc((char) registers[R_R0], stdout);
+            fflush(stdout);
+            break;
+        case TRAP_PUTS:
+            uint16_t* c = memory + registers[R_R0];
+            while(*c) {
+                putc((char) *c, stdout);
+                ++c;
+            }
+            fflush(stdout);
+            break;
+        case TRAP_IN:
+            printf("Enter a character: ");
+            char c = getchar();
+            putc(c, stdout);
+            registers[R_R0] = (uint16_t) c;
+            update_flags(R_R0);
+            break;
+        case TRAP_PUTSP:
+            uint16_t* c = memory + registers[R_R0];
+            while(*c) {
+                char char1 = (*c) & 0xFF;
+                putc(char1, stdout);
+                char char2 = (*c) >> 8;
+                if (char2) putc(char2, stdout);
+                ++c;
+            }
+            fflush(stdout);
+            break;
+        case TRAP_HALT:
+            puts("HALT");
+            fflush(stdout);
+            break;
+    }
 }
 
 void op_not(uint16_t instruction) {
