@@ -84,6 +84,12 @@ uint16_t check_key(){
     return WaitForSingleObject(hStdin, 1000) == WAIT_OBJECT_0 && _kbhit();
 }
 
+void handle_interrupt(int signal) {
+    restore_input_buffering();
+    printf("\n");
+    exit(-2);
+}
+
 // An instruction is a command that tells the CPU to perform a certain fundamental operation 
 // Each instruction takes in an opcode and a set of parameters
 // The set of instructions forms what is called an instruction set. 
@@ -341,6 +347,9 @@ int read_image(const char* image_path) {
 }
 
 int main(int argc, const char* argv[]) {
+    signal(SIGINT, handle_interrupt);
+    disable_input_buffering();
+
     // If the number of arguments provided is not sufficient,
     // we print a user guide on how to use it
     if(argc < 2) {
@@ -417,5 +426,7 @@ int main(int argc, const char* argv[]) {
                 break;
         }
     }
+
+    restore_input_buffering();
     return 0;
 }
